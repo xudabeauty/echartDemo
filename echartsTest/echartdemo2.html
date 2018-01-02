@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script type="text/javascript" src="js/echarts.min.js"></script>
+		<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="js/echartsConfig.js"></script>
+	</head>
+
+	<body>
+		<div id="main-container" style="height: 500px;width: 100%;">
+		</div>
+		<script>
+			var myEchart = echarts.init(document.getElementById("main-container"));
+			/*中心节点*/
+			var centerNode = {
+				symbolSize: 80, //节点的大小
+				symbol: 'image://img/about.png',
+				category: 0,
+				itemStyle: {
+					normal: {
+						color: "#005FD0"
+					},
+				},
+				lable: {
+					normal: {
+						position: "center",
+						formatter: (params) => {
+							const values = params.value || {};
+							return values.username;
+						},
+						textStyle: {
+							color: '#0064DB'
+						}
+					}
+				}
+			};
+
+			/*属性节点*/
+			var propertyNode = {
+				itemStyle: {
+					normal: {
+						color: '009DFD',
+					},
+				},
+				category: 1,
+				label: {
+					normal: {
+						formatter: params => Object.keys(params.value)[0],
+						textStyle: {
+							color: 'white'
+						}
+					}
+				}
+			};
+
+			/*uer节点*/
+			var userNode = {
+				itemStyle: {
+					normal: {
+						color: '#F7C226'
+					},
+				},
+				category: 2,
+				lable: {
+					normal: {
+						position: 'right',
+						formatter: (params) => {
+							const values = params.value || {};
+							return values.username;
+						},
+						textStyle: {
+							color: '#b17f24'
+						},
+					},
+				},
+			};
+
+			var option = {
+				background: '#',
+				tooltip: {
+					formatter: (params) => {
+						const values = params.value || {};
+						delete values.id;
+						delete values.source;
+						let str = '';
+						Object.keys(values).forEach((key) => {
+							let value = values[key];
+							const access = (localStorage.adminName === 'superadmin' ? 1 : 0);
+							if(!access && (key === '密码' || key === '密码哈希')) {
+								value = '********（请与使用管理部门联系获取详细信息）';
+							}
+							str += `${key}: ${value}<br>`;
+						});
+						return str;
+					},
+				},
+				series: [{
+					name: "关系图谱",
+					type: "graph",
+					layout: "none",
+					data: [],
+					links: [],
+					label: {
+						normal: {
+							show: true,
+						},
+					},
+					roam: true,
+					nodeScaleRation: 0.3,
+					focusNodeAdjacency: true,
+					gravity: 3,
+					lineStyle: {
+
+					}
+				}]
+			};
+
+			var originData = {
+				"姓名": "徐辉",
+				"用户名": "xuhui",
+				"性别": "女",
+				"生日": "2011-1-1",
+				"密码": "123",
+				"密码哈希": "dfdfd",
+				"密码盐": "fdfd",
+				"firstname": "xu",
+				"lastname": "hui",
+				"midname": "dd",
+				"邮箱": "yuweidazz@126.com",
+				"手机号": "123",
+				"地址": "",
+				"城市": "shanghai",
+				"国家": "china",
+				"州": "sss",
+				"邮编": "755000",
+				"地址2": "dfdf",
+				"username": "AWBtNo2xnDor7ji7H_A5",
+				"source": "1"
+			}
+			var data = [];
+			var links = [];
+
+			var getSymbolSize = function(index) {
+				if(index > 5) {
+					return 30;
+				}
+				return 70 - (index * 8);
+			};
+
+			const angleToRad = angle => (angle * Math.PI) / 180;
+
+			const getLen = () => Math.round(Math.random() * 13) + 7;
+
+			const getAngles = function(n) {
+				const angle = 180 / (n + 1);
+				const angles = [];
+				let init = 90;
+				for(let i = 0; i < n; i += 1) {
+					init -= angle;
+					angles.push(init);
+				}
+				return angles;
+			};
+
+			const getCoordinate = function(x1, y1, x2, y2, len, angle) {
+				const delX = (len * Math.cos(Math.atan((y2 - y1) / (x2 - x1)) + angleToRad(angle)));
+				const delY = (len * Math.sin(Math.atan((y2 - y1) / (x2 - x1)) + angleToRad(angle)));
+				if(y2 - y1 < 0 && x2 - x1 < 0) {
+					return {
+						y: y2 - delY,
+						x: x2 - delX,
+					}
+				}
+				if(y2 - y1 > 0 && x2 - x1 < 0) {
+					return {
+						y: y2 - delY,
+						x: x2 - delX,
+					}
+				}
+				return {
+					y: y2 + delY,
+					x: x2 + delX,
+				}
+			};
+
+			getCenterSpread = function(n) {
+				const angle = 360 / n;
+				const angles = [];
+				let init = 360 * Math.random();
+				for(let i = 0; i < n; i += 1) {
+					init += angle;
+					angles.push(init);
+				}
+				const nodes = angles.map(a => ({
+					x: getLen() * Math.cos(angleToRad(a)),
+					y: getLen() * Math.sin(angleToRad(a)),
+				}));
+				return nodes;
+			};
+
+			getNodeSpread = function(x1, y1, x2, y2, n) {
+				const angles = getAngles(n);
+				const nodes = angles.map(a => getCoordinate(x1, y1, x2, y2, getLen(), a));
+				return nodes;
+			};
+
+			var getDetail = function() {
+				const originUser = originData;
+				const categories = ['当前数据', '数据类型', '关联数据'];
+				this.links = [];
+				this.data = [Object.assign({
+						name: originUser.username,
+						value: originUser,
+						x: 0,
+						y: 0
+					},
+					centerNode)];
+				delete originUser.source;
+				delete originUser.id;
+				const nodes = getCenterSpread(Object.keys(originUser).length - 1);
+				const symbolSize = getSymbolSize(0) - 10;
+				Object.keys(originUser).forEach((key, index) => {
+					if(key !== 'username') {
+						const value = originUser[key];
+						const formatter = {};
+						formatter[key] = value;
+						this.data.push(Object.assign({
+							name: key,
+							value: formatter,
+						}, propertyNode, nodes[index], {
+							symbolSize
+						}));
+						this.links.push({
+							source: originUser.username,
+							target: key
+						});
+					}
+				});
+				this.option.series[0].data = this.data;
+				this.option.series[0].links = this.links;
+			};
+			getDetail();
+			myEchart.setOption(option);
+		</script>
+	</body>
+
+</html>

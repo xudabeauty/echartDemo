@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>echartDemo</title>
+		<script type="text/javascript" src="js/echarts.min.js"></script>
+		<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="js/echartsConfig.js"></script>
+	</head>
+
+	<body>
+		<div id="main-container" style="width: 1104px;height:464px;">
+		</div>
+		<script>
+			var centerNode={
+					symbolSize: 40,
+					category: 0,
+					itemStyle: {
+						normal: {
+							color: '#005FD0',
+						},
+					},
+					label: {
+						normal: {
+							position: 'center',
+							formatter: (params) => {
+								const values = params.value || {};
+								return values.username;
+							},
+							textStyle: {
+								color: '#0064DB',
+							},
+						},
+					},
+			};
+				var propertyNode={
+					itemStyle: {
+						normal: {
+							color: '#009DF0',
+						},
+					},
+					category: 1,
+					label: {
+						normal: {
+							formatter: params => Object.keys(params.value)[0],
+							textStyle: {
+								color: 'white',
+							},
+						},
+					},
+				};
+				var userNode={
+					itemStyle: {
+						normal: {
+							color: '#F7C226',
+						},
+					},
+					category: 2,
+					label: {
+						normal: {
+							position: 'right',
+							formatter: (params) => {
+								const values = params.value || {};
+								return values.username;
+							},
+							textStyle: {
+								color: '#b17f24',
+							},
+						},
+					},
+				};
+		    var graph={};
+			graph.data = {
+				
+				"username": "徐美丽",
+				"姓名": "徐辉",
+				"用户名": "xuhui",
+				"性别": "女",
+				"生日": "2011-1-1",
+				"密码": "123",
+				"密码哈希": "dfdfd",
+				"密码盐": "fdfd",
+				"firstname": "xu",
+				"lastname": "hui",
+				"midname": "dd",
+
+				"邮箱": "yeidazz@126.com",
+				"手机号": "123",
+				"地址": "",
+				"城市": "shanghai",
+				"国家": "china",
+				"州": "sss",
+				"邮编": "755000",
+				"地址2": "dfdf"
+			};
+			var optionData = {
+				backgroundColor: '#',
+				tooltip: {
+					formatter: (params) => {
+						const values = params.value || {};
+						let str = '';
+						Object.keys(values).forEach((key) => {
+							let value = values[key];
+							str += `${key}: ${value}<br>`;
+						});
+						return str;
+					},
+				},
+				series: [{
+					name: '关系图谱',
+					type: 'graph',
+					layout: 'none',
+					data: [],
+					links: [],
+					label: {
+						normal: {
+							show: true,
+						},
+					},
+					roam: true,
+					nodeScaleRatio: 0.3,
+					focusNodeAdjacency: true,
+					gravity: 3,
+					lineStyle: {
+						normal: {
+							color: 'source',
+							width: 1,
+							curveness: 0.1,
+						},
+					},
+					draggable: false,
+				}],
+			};
+
+			const getLen = () => Math.round(Math.random() * 13) + 7;
+			const angleToRad = angle => (angle * Math.PI) / 180;
+			var getCenterSpread = function(n) {
+				const angle = 360 / n;
+				const angles = [];
+				let init = 360 * Math.random();
+				for(let i = 0; i < n; i += 1) {
+					init += angle;
+					angles.push(init);
+				}
+				debugger;
+				const nodes = angles.map(a => ({
+					x: getLen() * Math.cos(angleToRad(a)),
+					y: getLen() * Math.sin(angleToRad(a)),
+				}));
+				return nodes;
+			};
+
+			const originUser = data;
+			links = [];
+			debugger;
+			var _this=this;
+			this.data = [Object.assign({
+					name: originUser.username,
+					value: originUser,
+					x: 0,
+					y: 0
+				},
+				_this.centerNode)];
+			const nodes = getCenterSpread(Object.keys(originUser).length - 1);
+			const symbolSize = getSymbolSize(0) - 10;
+			Object.keys(originUser).forEach((key, index) => {
+				if(key !== 'username') {
+					const value = originUser[key];
+					const formatter = {};
+					formatter[key] = value;
+					this.data.push(Object.assign({
+						name: key,
+						value: formatter,
+					}, propertyNode, nodes[index], {
+						symbolSize
+					}));
+					this.links.push({
+						source: originUser.username,
+						target: key
+					});
+				}
+			});
+			optionData.series[0].data = data;
+			optionData.series[0].links = links;
+			var myChart = echarts.init(document.getElementById("main-container"));
+			var _self = this;
+			myChart.setOption(_self.optionData);
+		</script>
+
+	</body>
+
+</html>

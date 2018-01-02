@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style media="screen">
+      #echart-container{
+        height: 500px;
+        width: 100%;
+      }
+    </style>
+		<script type="text/javascript" src="js/echarts.min.js" ></script>
+	</head>
+	<body>
+		<div id="echart-container">
+			
+		</div>
+		<script>
+			var myEchart=echarts.init(document.getElementById("echart-container"));
+			  var graph = {};//数据
+		      graph.nodes = [
+		          {category:0,name: 1, value :5,label: '乔布斯'},
+		          {category:1, name: 2,value : 2,label: '丽萨-乔布斯'},
+		          {category:1, name: 3,value : 3,label: '保罗-乔布斯'},
+		          {category:1, name: 4,value : 3,label: '克拉拉-乔布斯'},
+		          {category:1, name: 5,value : 7,label: '劳伦-鲍威尔'},
+		          {category:2, name: 6,value : 5,label: '史蒂夫-沃兹尼艾克'},
+		          {category:2, name: 7,value : 8,label: '奥巴马'},
+		          {category:2, name: 8,value : 9,label: '比尔-盖茨'},
+		          {category:2, name: 9,value : 4,label: '乔纳森-艾夫'},
+		          {category:2, name: 10,value : 4,label: '蒂姆-库克'},
+		          {category:2, name: 11,value : 1,label: '龙-韦恩'},
+		      ];
+      //以下为连线关系数据，每一个{}里面为一个关系，source（起点，对应上面的name），target（终点，对应上面的name）
+      //value(起点到终点的距离，值越大，权重越大，距离越短)
+		      graph.links = [
+		                {source : 2, target : 1, value : 5, label: '女儿'},
+		                {source : 3, target : 1, value : 2, label: '父亲'},
+		                {source : 4, target : 1, value : 1, label: '母亲'},
+		                {source : 5, target : 1, value : 2, label: '不详'},
+		                {source : 6, target : 1, value : 3, label: '合伙人'},
+		                {source : 7, target : 1, value : 1, label: '不详'},
+		                {source :  8, target : 1, value : 6, label: '竞争对手'},
+		                {source : 9, target : 1, value : 1, label: '爱将'},
+		                {source : 10, target : 1, value : 1, label: '不详'},
+		                {source : 11, target : 1, value : 1, label: '不详'},
+		                {source : 4, target : 3, value : 1, label: '不详'},
+		                {source : 7, target : 3, value : 1, label: '不详'},
+		                {source : 7, target : 4, value : 1, label: '不详'},
+		                {source : 7, target : 5, value : 1, label: '不详'},
+		                {source : 7, target : 6, value : 1, label: '不详'},
+		                {source : 8, target : 7, value : 6, label: '不详'},
+		                {source : 8, target : 4, value : 1, label: '不详'},
+		                {source : 10, target : 7, value : 1, label: '不详'}
+		            ];
+		      //categories为node节点分类，categoriesshort为显示图例，后者比前者短，可以使得图例中没有主干人物
+		      graph.categories = [{name:'主干人物'},{name:'家人'},{name:'朋友'} ];
+		      graph.categoriesshort = [{name:'家人'},{name:'朋友'} ];
+
+      // 设置关系图节点标记的大小
+      graph.nodes.forEach(function (node) {
+        node.symbolSize = node.value*3;
+    });
+		var option={
+			title:{
+				text:'人际关系网络图',
+				subtext:"人物关系:乔布斯",
+				top:'top',
+				left:'center'
+			},
+			tooltip:{
+				trigger:'item',
+				formatter:function(params){
+					if(params.data.category!=undefined){
+						return "人物"+params.data.label;
+					}else{
+						return "关系"+params.data.label;
+					}
+				}
+			},
+			toolblx:{
+				show:true,
+				feature:{
+					dataView:{show:true,readOnly:true},
+					restore:{show:true},
+					saveAsImage:{show:true}
+				}
+			},
+			color:['rgb(194,53,49)','rgb(178,144,137)','rgb(97,160,168)'],
+			legend:[{
+				x:'left',
+				data:graph.categoriesshort.map(function(a){
+					return a.name;
+				})
+				
+			}],
+			series:[{
+				name:"人际关系网络图",
+				type:'graph',
+				layout:'force',
+				draggable:true,
+				data:graph.nodes,
+				links:graph.links,
+				categories:graph.categories,
+				focusNodeAdjacency:true,
+				roam:true,
+				label:{
+					normal:{
+						show:true,
+						position:'right',
+						formatter:function(params){
+						return params.data.label;
+					}
+					}
+				},
+				itemStyle:{
+					normal:{
+						opacity:0.9
+					}
+				},
+				lineStyle:{
+					normal:{
+							show:true,
+							color:'target',
+							curveness:0,
+					}
+				},
+				force:{
+					edgeLength:[100,200],
+					repulsion:100
+					
+				}
+			}]
+		}
+			myEchart.setOption(option);
+		</script>
+	</body>
+</html>
